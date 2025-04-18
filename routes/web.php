@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/admin/users', [DashboardController::class, 'index'])->name('admin.users.index');
 });
 Route::middleware(['auth', 'role:admin|finance'])->group(function () {
     Route::get('/finance/reports', [ReportController::class, 'index'])->name('finance.reports');
