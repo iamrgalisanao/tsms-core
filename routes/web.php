@@ -1,38 +1,47 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DashboardController;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
+// Restore original logic
+// Route::get('/', function () {
+//     return 'Root route is working!';
+// });
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    if (!Auth::check()) {
+        Log::info('User is not authenticated. Redirecting to login.');
+        return redirect()->route('login');
+    }
+
+    $user = Auth::user();
+    Log::info('Authenticated user:', ['id' => $user->id, 'roles' => $user->roles->pluck('name')]);
+
+    if ($user && $user->hasRole('admin')) {
+        Log::info('User has admin role. Redirecting to admin dashboard.');
+        return redirect()->route('admin.dashboard');
+    }
+
+    if ($user && $user->hasRole('finance')) {
+        Log::info('User has finance role. Redirecting to finance reports.');
+        return redirect()->route('finance.reports');
+    }
+
+    if ($user && $user->hasRole('support')) {
+        Log::info('User has support role. Redirecting to support logs.');
+        return redirect()->route('support.logs');
+    }
+
+    if ($user && $user->hasRole('commercial')) {
+        Log::info('User has commercial role. Redirecting to commercial sales.');
+        return redirect()->route('commercial.sales');
+    }
+
+    Log::info('User authenticated but has no specific role. Logging out and redirecting to login.');
+    Auth::logout();
+    return redirect()->route('login');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/panel', fn () => Inertia::render('Admin/Panel'))->name('admin.panel');
-});
-
-Route::middleware(['auth', 'role:finance'])->group(function () {
-    Route::get('/finance/reports', fn () => Inertia::render('Finance/Reports'))->name('finance.reports');
-});
-
-Route::middleware(['auth', 'role:support'])->group(function () {
-    Route::get('/support/logs', fn () => Inertia::render('Support/Logs'))->name('support.logs');
-});
-
-Route::middleware(['auth', 'role:commercial'])->group(function () {
-    Route::get('/commercial/sales', fn () => Inertia::render('Commercial/Sales'))->name('commercial.sales');
-});
-
-Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn () => Inertia::render('Shared/Dashboard'))->name('dashboard');
-});
-
-require __DIR__.'/auth.php';
+// Other routes previously defined here were removed as they are loaded via bootstrap/app.php

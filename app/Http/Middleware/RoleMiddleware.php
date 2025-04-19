@@ -4,14 +4,24 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Spatie\Permission\Exceptions\UnauthorizedException;
 
 class RoleMiddleware
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next, $role, $guard = null)
     {
-        if (!auth()->check() || !auth()->user()->hasRole($role)) {
-            abort(403, 'Access denied. You do not have the required role.');
+        $user = $request->user();
+
+        if (!$user) {
+            throw UnauthorizedException::notLoggedIn();
+        }
+
+        $roles = is_array($role)
+            ? $role
+            : explode('|', $role);
+
+        if (!$user->hasAnyRole($roles)) {
+            throw UnauthorizedException::forRoles($roles);
         }
 
         return $next($request);
