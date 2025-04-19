@@ -22,6 +22,6 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
-        Route::aliasMiddleware('role', RoleMiddleware::class);
+        Route::aliasMiddleware('role', \App\Http\Middleware\RoleMiddleware::class);
     }
 }
