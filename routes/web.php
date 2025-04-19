@@ -15,23 +15,24 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
 Route::middleware(['auth', 'role:admin'])->group(function () {
-    Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard');
-    Route::get('/admin/users', [DashboardController::class, 'index'])->name('admin.users.index');
+    Route::get('/admin/panel', fn () => Inertia::render('Admin/Panel'))->name('admin.panel');
 });
 
-Route::middleware(['auth', 'role:admin|finance'])->group(function () {
-    Route::get('/finance/reports', [ReportController::class, 'index'])->name('finance.reports');
+Route::middleware(['auth', 'role:finance'])->group(function () {
+    Route::get('/finance/reports', fn () => Inertia::render('Finance/Reports'))->name('finance.reports');
+});
+
+Route::middleware(['auth', 'role:support'])->group(function () {
+    Route::get('/support/logs', fn () => Inertia::render('Support/Logs'))->name('support.logs');
+});
+
+Route::middleware(['auth', 'role:commercial'])->group(function () {
+    Route::get('/commercial/sales', fn () => Inertia::render('Commercial/Sales'))->name('commercial.sales');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/dashboard', fn () => Inertia::render('Shared/Dashboard'))->name('dashboard');
 });
 
 require __DIR__.'/auth.php';
